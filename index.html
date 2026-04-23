@@ -2,10 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Project Board</title>
+  <title>Kanban colaborativo</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="user-selector">
+    <label>👤 Usuario:</label>
+    <select id="userSelect"></select>
+  </div>
+
+  <div class="view-switcher">
+    <button id="viewAllBtn" class="view-btn active">📋 Todas las tareas</button>
+    <button id="viewMyBtn" class="view-btn">👤 Mis tareas</button>
+  </div>
+</div>
 
 <div class="app">
 
@@ -13,43 +26,58 @@
   <aside class="projects">
     <div class="header">
       <h3>Proyectos</h3>
-      <button id="btnAddProject">+</button>
+      <button id="btnAddProject" class="btn-icon primary">＋</button>
     </div>
+
     <div id="projectList"></div>
-    <button id="btnDeleteProject" class="danger">Eliminar proyecto</button>
+
+    <button id="btnDeleteProject" class="danger">
+      🗑 Eliminar proyecto
+    </button>
   </aside>
 
   <!-- HISTORIAL -->
   <aside class="history">
     <div class="header">
       <h3>Historial</h3>
-      <button id="btnAddComment">+</button>
+      <button id="btnAddComment" class="btn-icon">＋</button>
     </div>
+
     <div id="commentList"></div>
   </aside>
 
   <!-- KANBAN -->
   <main class="board">
+
     <div class="column" data-status="todo">
-      <h4>Pendiente</h4>
-      <button class="addTask">+ Tarea</button>
+      <div class="column-header">
+        <h4>Pendiente</h4>
+        <button class="addTask primary-btn">+ Nueva</button>
+      </div>
       <div class="tasks"></div>
     </div>
 
     <div class="column" data-status="doing">
-      <h4>En Proceso</h4>
+      <div class="column-header">
+        <h4>En Proceso</h4>
+      </div>
       <div class="tasks"></div>
     </div>
 
     <div class="column" data-status="review">
-      <h4>Revisión</h4>
+      <div class="column-header">
+        <h4>Revisión</h4>
+      </div>
       <div class="tasks"></div>
     </div>
 
     <div class="column" data-status="done">
-      <h4>Hecho</h4>
+      <div class="column-header">
+        <h4>Hecho</h4>
+      </div>
       <div class="tasks"></div>
     </div>
+
   </main>
 </div>
 
@@ -80,13 +108,20 @@
   <div class="modal-content">
     <h3>Nueva Tarea</h3>
     <input id="taskTitle" placeholder="Título">
-    <textarea id="taskDescription" placeholder="Descripción de la tarea"></textarea>
+    <textarea id="taskDescription" placeholder="Descripción"></textarea>
+
     <select id="taskPriority">
       <option value="low">Baja</option>
       <option value="medium">Media</option>
       <option value="high">Alta</option>
     </select>
+
     <input type="date" id="taskDue">
+
+    <select id="taskAssignedTo" required>
+      <option value="">-- Responsable --</option>
+    </select>
+
     <div class="modal-actions">
       <button onclick="closeModal()">Cancelar</button>
       <button id="saveTask">Guardar</button>
