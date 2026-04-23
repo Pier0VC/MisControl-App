@@ -272,6 +272,7 @@ textarea {
 
 /* ===== PROJECT CARD PRO ===== */
 .project-card {
+  position: relative;
   background: #ffffff;
   border-radius: 10px;
   padding: 12px;
