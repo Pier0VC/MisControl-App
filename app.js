@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, where, deleteDoc, doc,
-  serverTimestamp, onSnapshot
+  query, where,orderBy, deleteDoc, doc,
+  serverTimestamp, onSnapshot,
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -19,6 +19,8 @@ const db = getFirestore(app);
 
 let currentProject = null;
 let dragged = null;
+let unsubscribeProjects = null;
+
 
 /* ========= UTIL ========= */
 function openModal(id) {
@@ -43,16 +45,18 @@ saveProject.onclick = async () => {
   await addDoc(collection(db, "projects"), {
   name: projectName.value,
   createdAt: serverTimestamp()
-});
+  });
   projectName.value = "";
   closeModal();
-  loadProjects();
 };
 
 function loadProjects() {
   const list = document.getElementById("projectList");
 
-  onSnapshot(collection(db, "projects"), async snap => {
+  // ✅ Evitar listeners duplicados
+  if (unsubscribeProjects) return;
+
+  unsubscribeProjects = onSnapshot(collection(db, "projects"), async snap => {
     list.innerHTML = "";
 
     for (const d of snap.docs) {
@@ -73,7 +77,9 @@ function loadProjects() {
       `;
 
       div.onclick = () => {
-        document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".project-card")
+          .forEach(p => p.classList.remove("active"));
+
         div.classList.add("active");
         currentProject = projectId;
         loadComments();
@@ -100,7 +106,6 @@ btnDeleteProject.onclick = async () => {
   c.forEach(d => deleteDoc(doc(db, "comments", d.id)));
 
   currentProject = null;
-  loadProjects();
   document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
   commentList.innerHTML = "";
 };
@@ -123,7 +128,11 @@ function loadComments() {
   if (!currentProject) return;
 
   onSnapshot(
-    query(collection(db, "comments"), where("projectId", "==", currentProject)),
+    query(
+      collection(db, "comments"),
+      where("projectId", "==", currentProject),
+      orderBy("createdAt", "desc") // ✅ ahora sí existe
+    ),
     snap => {
       commentList.innerHTML = "";
 
@@ -146,6 +155,8 @@ function loadComments() {
     }
   );
 }
+``
+
 
 /* ========= TAREAS ========= */
 document.querySelector(".addTask").onclick = () => openModal("taskModal");
