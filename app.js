@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, where, deleteDoc, doc
+  query, where, deleteDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -27,12 +27,22 @@ function closeModal() {
   document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
 }
 
+function formatDate(ts) {
+  if (!ts) return "";
+  const d = ts.toDate();
+  return d.toLocaleDateString();
+}
+
+
 /* ========= PROYECTOS ========= */
 btnAddProject.onclick = () => openModal("modalProject");
 
 saveProject.onclick = async () => {
   if (!projectName.value) return;
-  await addDoc(collection(db, "projects"), { name: projectName.value });
+  await addDoc(collection(db, "projects"), {
+  name: projectName.value,
+  createdAt: serverTimestamp()
+});
   projectName.value = "";
   closeModal();
   loadProjects();
@@ -49,9 +59,11 @@ async function loadProjects() {
     div.dataset.id = d.id;
 
     div.innerHTML = `
+    <div class="card-date">${formatDate(d.data().createdAt)}</div>
     <div class="project-title">${d.data().name}</div>
     <div class="project-meta">Proyecto</div>
     `;
+
 
     div.onclick = () => {
       document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
@@ -89,7 +101,8 @@ btnAddComment.onclick = () => openModal("modalComment");
 saveComment.onclick = async () => {
   await addDoc(collection(db, "comments"), {
     projectId: currentProject,
-    text: commentText.value
+    text: commentText.value,
+    createdAt: serverTimestamp()
   });
   commentText.value = "";
   closeModal();
@@ -102,9 +115,14 @@ async function loadComments() {
   snap.forEach(d => {
     const div = document.createElement("div");
     div.className = "comment";
+
     div.innerHTML = `
-      ${d.data().text}
-      <span class="delete-btn">🗑</span>`;
+    <div class="card-date">${formatDate(d.data().createdAt)}</div>
+    <div class="comment-text">${d.data().text}</div>
+    <span class="delete-btn">🗑</span>
+    `;
+
+
     div.querySelector(".delete-btn").onclick = async () => {
       await deleteDoc(doc(db, "comments", d.id));
       loadComments();
@@ -120,9 +138,11 @@ saveTask.onclick = async () => {
   await addDoc(collection(db, "tasks"), {
     projectId: currentProject,
     title: taskTitle.value,
+    description: taskDescription.value,
     priority: taskPriority.value,
     dueDate: taskDue.value,
-    status: "todo"
+    status: "todo",
+    createdAt: serverTimestamp()
   });
   closeModal();
   loadTasks();
@@ -140,6 +160,9 @@ async function loadTasks() {
     div.dataset.id = d.id;
 
     div.innerHTML = `
+    <div class="card-date">${formatDate(t.createdAt)}</div>
+    <div class="task-deadline">${getRemainingTime(t.dueDate)}</div>
+
     <div class="task-header">
         <span class="task-title">${t.title}</span>
         <div class="task-actions">
@@ -147,13 +170,14 @@ async function loadTasks() {
         </div>
     </div>
 
+    <div class="task-desc">${t.description || ""}</div>
+
     <div class="task-footer">
         <span class="priority-badge ${t.priority}">
         ${t.priority.toUpperCase()}
         </span>
     </div>
     `;
-
 
     div.querySelector(".delete-btn").onclick = async () => {
       await deleteDoc(doc(db, "tasks", d.id));
@@ -186,5 +210,22 @@ document.querySelectorAll(".column").forEach(col => {
   };
 });
 ``
+
+function getRemainingTime(dueDate) {
+  if (!dueDate) return "";
+
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diff = due - now;
+
+  if (diff <= 0) return "Vencida";
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  return `${hours}h`;
+}
+
 window.closeModal = closeModal;
 loadProjects();
