@@ -11,21 +11,24 @@
 
   <!-- PROYECTOS -->
   <aside class="projects">
-    <h3>Proyectos</h3>
-    <button id="btnAddProject">+ Proyecto</button>
+    <div class="header">
+      <h3>Proyectos</h3>
+      <button id="btnAddProject">+</button>
+    </div>
     <div id="projectList"></div>
+    <button id="btnDeleteProject" class="danger">Eliminar proyecto</button>
   </aside>
 
   <!-- HISTORIAL -->
   <aside class="history">
-    <div class="history-header">
+    <div class="header">
       <h3>Historial</h3>
-      <button id="btnAddComment">+ Comentario</button>
+      <button id="btnAddComment">+</button>
     </div>
     <div id="commentList"></div>
   </aside>
 
-  <!-- BOARD -->
+  <!-- KANBAN -->
   <main class="board">
     <div class="column" data-status="todo">
       <h4>Pendiente</h4>
@@ -48,29 +51,43 @@
       <div class="tasks"></div>
     </div>
   </main>
-
 </div>
 
-<!-- MODAL TAREA -->
-<div id="taskModal" class="modal hidden">
+<!-- MODALES -->
+<div class="modal hidden" id="modalProject">
+  <div class="modal-content">
+    <h3>Nuevo Proyecto</h3>
+    <input id="projectName" placeholder="Nombre del proyecto">
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancelar</button>
+      <button id="saveProject">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="modalComment">
+  <div class="modal-content">
+    <h3>Nuevo Comentario</h3>
+    <textarea id="commentText"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancelar</button>
+      <button id="saveComment">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="taskModal">
   <div class="modal-content">
     <h3>Nueva Tarea</h3>
-
-    <label>Título</label>
-    <input id="taskTitle" type="text">
-
-    <label>Prioridad</label>
+    <input id="taskTitle" placeholder="Título">
     <select id="taskPriority">
       <option value="low">Baja</option>
       <option value="medium">Media</option>
       <option value="high">Alta</option>
     </select>
-
-    <label>Fecha de vencimiento</label>
-    <input id="taskDue" type="date">
-
+    <input type="date" id="taskDue">
     <div class="modal-actions">
-      <button id="cancelTask">Cancelar</button>
+      <button onclick="closeModal()">Cancelar</button>
       <button id="saveTask">Guardar</button>
     </div>
   </div>
