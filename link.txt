@@ -1,1 +1,70 @@
 https://console.firebase.google.com/v1/r/project/speeches-app/firestore/indexes?create_composite=Ck1wcm9qZWN0cy9zcGVlY2hlcy1hcHAvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL2NvbW1lbnRzL2luZGV4ZXMvXxABGg0KCXByb2plY3RJZBABGg0KCWNyZWF0ZWRBdBACGgwKCF9fbmFtZV9fEAI
+
+
+Actúa como un Senior Frontend / Fullstack Engineer especializado en aplicaciones colaborativas en tiempo real.
+
+Quiero diseñar y construir una aplicación tipo Trello/Kanban usando:
+- HTML, CSS y JavaScript (vanilla)
+- Firebase Firestore (NO Firebase Auth)
+
+### Requisitos funcionales
+1. La aplicación debe manejar PROYECTOS
+2. Cada proyecto tiene:
+   - Historial de comentarios
+   - Tareas organizadas en columnas: To Do, Doing, Review, Done
+3. Cada tarea DEBE tener un responsable obligatorio
+
+### Usuarios (sin autenticación)
+- El sistema debe usar “usuarios lógicos”
+- Los usuarios estarán definidos manualmente en una colección `users` en Firestore
+- Al entrar a la app, el usuario selecciona quién es desde un selector
+- No se usan contraseñas ni Firebase Auth
+- La selección del usuario debe persistir en `localStorage`
+
+### Tareas
+Cada tarea debe tener:
+- título
+- descripción
+- estado
+- prioridad
+- fecha de vencimiento
+- fecha de creación automática
+- responsable (userId lógico)
+
+### Vistas requeridas
+1. **Vista general**
+   - Muestra todas las tareas del proyecto
+2. **Vista "Mis tareas"**
+   - Muestra solo las tareas cuyo responsable es el usuario seleccionado
+3. Ambas vistas deben funcionar en tiempo real
+
+### Tiempo real
+- La app debe usar `onSnapshot`
+- Debe evitar listeners duplicados
+- Al cambiar de proyecto, los listeners anteriores deben cerrarse
+- El comportamiento en tiempo real debe ser consistente entre usuarios
+
+### UI / UX
+- Diseño limpio, profesional y claro
+- Tarjetas con jerarquía visual (fecha, título, descripción, responsable)
+- Indicadores claros de estado y prioridad
+- Selector de usuario visible
+- Botones para cambiar entre vista general / vista personal
+
+### Arquitectura
+- Buen diseño de datos en Firestore
+- Funciones bien separadas
+- Uso correcto de `unsubscribe()` para listeners
+- Código claro, escalable para un equipo de 10 personas
+
+### Entregables que quiero en la respuesta
+1. Modelo de datos en Firestore (colecciones y campos)
+2. Flujo lógico de la aplicación
+3. Ejemplo de queries para:
+   - vista general
+   - vista por responsable
+4. Recomendaciones de UI / UX
+5. Justificación de decisiones técnicas
+6. Buenas prácticas para escalar sin Firebase Auth
+
+Explícame todo de forma clara, estructurada y profesional.
