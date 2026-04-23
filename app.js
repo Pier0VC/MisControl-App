@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, where, updateDoc, doc, serverTimestamp
+  query, where, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -19,7 +19,25 @@ const db = getFirestore(app);
 let currentProject = null;
 let dragged = null;
 
+/* ========= UTIL ========= */
+function openModal(id) {
+  document.getElementById(id).classList.remove("hidden");
+}
+function closeModal() {
+  document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
+}
+
 /* ========= PROYECTOS ========= */
+btnAddProject.onclick = () => openModal("modalProject");
+
+saveProject.onclick = async () => {
+  if (!projectName.value) return;
+  await addDoc(collection(db, "projects"), { name: projectName.value });
+  projectName.value = "";
+  closeModal();
+  loadProjects();
+};
+
 async function loadProjects() {
   const list = document.getElementById("projectList");
   list.innerHTML = "";
@@ -27,11 +45,16 @@ async function loadProjects() {
   const snap = await getDocs(collection(db, "projects"));
   snap.forEach(d => {
     const div = document.createElement("div");
-    div.className = "project";
-    div.textContent = d.data().name;
+    div.className = "project-card";
+    div.dataset.id = d.id;
+
+    div.innerHTML = `
+    <div class="project-title">${d.data().name}</div>
+    <div class="project-meta">Proyecto</div>
+    `;
 
     div.onclick = () => {
-      document.querySelectorAll(".project").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
       div.classList.add("active");
       currentProject = d.id;
       loadComments();
@@ -41,110 +64,127 @@ async function loadProjects() {
   });
 }
 
-document.getElementById("btnAddProject").onclick = async () => {
-  const name = window.prompt("Nombre del proyecto");
-  if (!name) return;
-  await addDoc(collection(db, "projects"), { name });
+btnDeleteProject.onclick = async () => {
+  if (!currentProject) return;
+  const key = prompt('Escribe "admin" para eliminar');
+  if (key !== "admin") return alert("Cancelado");
+
+  await deleteDoc(doc(db, "projects", currentProject));
+
+  const t = await getDocs(query(collection(db, "tasks"), where("projectId", "==", currentProject)));
+  t.forEach(d => deleteDoc(doc(db, "tasks", d.id)));
+
+  const c = await getDocs(query(collection(db, "comments"), where("projectId", "==", currentProject)));
+  c.forEach(d => deleteDoc(doc(db, "comments", d.id)));
+
+  currentProject = null;
   loadProjects();
+  document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
+  commentList.innerHTML = "";
 };
 
-/* ========= HISTORIAL ========= */
-async function loadComments() {
-  const list = document.getElementById("commentList");
-  list.innerHTML = "";
+/* ========= COMENTARIOS ========= */
+btnAddComment.onclick = () => openModal("modalComment");
 
-  const q = query(collection(db, "comments"), where("projectId", "==", currentProject));
-  const snap = await getDocs(q);
-
-  snap.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "comment";
-    div.textContent = d.data().text;
-    list.appendChild(div);
-  });
-}
-
-document.getElementById("btnAddComment").onclick = async () => {
-  if (!currentProject) return alert("Selecciona un proyecto");
-  const text = window.prompt("Comentario semanal");
-  if (!text) return;
-
+saveComment.onclick = async () => {
   await addDoc(collection(db, "comments"), {
     projectId: currentProject,
-    text,
-    createdAt: serverTimestamp()
+    text: commentText.value
   });
-
+  commentText.value = "";
+  closeModal();
   loadComments();
 };
 
+async function loadComments() {
+  commentList.innerHTML = "";
+  const snap = await getDocs(query(collection(db, "comments"), where("projectId", "==", currentProject)));
+  snap.forEach(d => {
+    const div = document.createElement("div");
+    div.className = "comment";
+    div.innerHTML = `
+      ${d.data().text}
+      <span class="delete-btn">🗑</span>`;
+    div.querySelector(".delete-btn").onclick = async () => {
+      await deleteDoc(doc(db, "comments", d.id));
+      loadComments();
+    };
+    commentList.appendChild(div);
+  });
+}
+
 /* ========= TAREAS ========= */
-const modal = document.getElementById("taskModal");
-document.querySelector(".addTask").onclick = () => modal.classList.remove("hidden");
+document.querySelector(".addTask").onclick = () => openModal("taskModal");
 
-document.getElementById("cancelTask").onclick = () => modal.classList.add("hidden");
-
-document.getElementById("saveTask").onclick = async () => {
-  const title = taskTitle.value;
-  const priority = taskPriority.value;
-  const due = taskDue.value;
-
-  if (!title || !currentProject) return alert("Datos incompletos");
-
+saveTask.onclick = async () => {
   await addDoc(collection(db, "tasks"), {
     projectId: currentProject,
-    title,
-    priority,
-    dueDate: due,
+    title: taskTitle.value,
+    priority: taskPriority.value,
+    dueDate: taskDue.value,
     status: "todo"
   });
-
-  modal.classList.add("hidden");
-  taskTitle.value = "";
-  taskDue.value = "";
+  closeModal();
   loadTasks();
 };
 
 async function loadTasks() {
   document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
-
-  const q = query(collection(db, "tasks"), where("projectId", "==", currentProject));
-  const snap = await getDocs(q);
+  const snap = await getDocs(query(collection(db, "tasks"), where("projectId", "==", currentProject)));
 
   snap.forEach(d => {
     const t = d.data();
     const div = document.createElement("div");
-    div.className = "task";
+    div.className = `task-card ${t.priority}`;
     div.draggable = true;
     div.dataset.id = d.id;
 
     div.innerHTML = `
-      <span class="due-dot"></span>
-      <strong>${t.title}</strong>
-      <div class="tags"><span class="tag ${t.priority}">${t.priority}</span></div>
+    <div class="task-header">
+        <span class="task-title">${t.title}</span>
+        <div class="task-actions">
+        <span class="delete-btn" title="Eliminar">🗑</span>
+        </div>
+    </div>
+
+    <div class="task-footer">
+        <span class="priority-badge ${t.priority}">
+        ${t.priority.toUpperCase()}
+        </span>
+    </div>
     `;
 
-    div.ondragstart = () => dragged = div;
-    setDot(div.querySelector(".due-dot"), t.dueDate);
 
+    div.querySelector(".delete-btn").onclick = async () => {
+      await deleteDoc(doc(db, "tasks", d.id));
+      loadTasks();
+    };
+
+    div.ondragstart = () => dragged = div;
     document.querySelector(`.column[data-status="${t.status}"] .tasks`).appendChild(div);
   });
 }
 
-function setDot(dot, due) {
-  const diff = new Date(due) - new Date();
-  dot.style.background = diff < 0 ? "red" : diff < 86400000 ? "orange" : "gray";
-}
-
-/* ========= DRAG ========= */
 document.querySelectorAll(".column").forEach(col => {
   col.ondragover = e => e.preventDefault();
+
   col.ondrop = async () => {
-    await updateDoc(doc(db, "tasks", dragged.dataset.id), {
-      status: col.dataset.status
-    });
+    if (!dragged) return;
+
+    const newStatus = col.dataset.status;
+
+    await addDoc; // ← NO usamos addDoc para esto
+    await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js")
+      .then(({ updateDoc }) =>
+        updateDoc(doc(db, "tasks", dragged.dataset.id), {
+          status: newStatus
+        })
+      );
+
+    dragged = null;
     loadTasks();
   };
 });
-
+``
+window.closeModal = closeModal;
 loadProjects();
