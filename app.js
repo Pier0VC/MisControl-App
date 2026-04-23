@@ -20,6 +20,9 @@ const db = getFirestore(app);
 let currentProject = null;
 let dragged = null;
 let unsubscribeProjects = null;
+let unsubscribeComments = null;
+let unsubscribeTasks = null;
+
 
 
 /* ========= UTIL ========= */
@@ -127,11 +130,12 @@ saveComment.onclick = async () => {
 function loadComments() {
   if (!currentProject) return;
 
-  onSnapshot(
+  if (unsubscribeComments) unsubscribeComments();
+
+  unsubscribeComments = onSnapshot(
     query(
       collection(db, "comments"),
-      where("projectId", "==", currentProject),
-      orderBy("createdAt", "desc") // ✅ ahora sí existe
+      where("projectId", "==", currentProject)
     ),
     snap => {
       commentList.innerHTML = "";
@@ -155,7 +159,7 @@ function loadComments() {
     }
   );
 }
-``
+
 
 
 /* ========= TAREAS ========= */
@@ -178,9 +182,9 @@ saveTask.onclick = async () => {
 function loadTasks() {
   if (!currentProject) return;
 
-  document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
+  if (unsubscribeTasks) unsubscribeTasks();
 
-  onSnapshot(
+  unsubscribeTasks = onSnapshot(
     query(collection(db, "tasks"), where("projectId", "==", currentProject)),
     snap => {
       document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
@@ -225,6 +229,7 @@ function loadTasks() {
     }
   );
 }
+
 
 document.querySelectorAll(".column").forEach(col => {
   col.ondragover = e => e.preventDefault();
