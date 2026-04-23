@@ -68,3 +68,23 @@ Cada tarea debe tener:
 6. Buenas prácticas para escalar sin Firebase Auth
 
 Explícame todo de forma clara, estructurada y profesional.
+
+Cada persona selecciona quién es → currentUserId
+Cada tarea tiene un responsable → assignedTo
+Vista general → todas las tareas del proyecto
+Vista “Mis tareas” → tareas donde:
+assignedTo === currentUserId
+userId	Nombre	Activo	Observaciones
+u1	Piero Salvador Valverde	Sí	Coordinación general
+u2	Ariana Verónica Odicio	Sí	Desarrollo
+u3	Danny Cesar Muñoz	Sí	Desarrollo
+u4	Karen Zambrano	Sí	Coordinación general
+u5	Edson Pena	Sí	QA
+u6	Jose Astorayme 	Sí	Desarrollo
+u7	Patricia Collantes 	Sí	Coordinación general
+u8	Roberto Obregon	Sí	Desarrollo
+u9	Lucero Arguedas	Sí	Documentación
+u10	Martin Vargas	Sí	Desarrollo
+u13	Jennifer Gonzalez Santos (PE)	Sí	QA
+
+
