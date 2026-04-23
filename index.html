@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- PROYECTOS -->
+  <aside class="projects">
+    <h3>Proyectos</h3>
+    <button id="btnAddProject">+ Proyecto</button>
+    <div id="projectList"></div>
+  </aside>
+
+  <!-- HISTORIAL -->
+  <aside class="history">
+    <div class="history-header">
+      <h3>Historial</h3>
+      <button id="btnAddComment">+ Comentario</button>
+    </div>
+    <div id="commentList"></div>
+  </aside>
+
+  <!-- BOARD -->
+  <main class="board">
+    <div class="column" data-status="todo">
+      <h4>Pendiente</h4>
+      <button class="addTask">+ Tarea</button>
+      <div class="tasks"></div>
+    </div>
+
+    <div class="column" data-status="doing">
+      <h4>En Proceso</h4>
+      <div class="tasks"></div>
+    </div>
+
+    <div class="column" data-status="review">
+      <h4>Revisión</h4>
+      <div class="tasks"></div>
+    </div>
+
+    <div class="column" data-status="done">
+      <h4>Hecho</h4>
+      <div class="tasks"></div>
+    </div>
+  </main>
+
+</div>
+
+<!-- MODAL TAREA -->
+<div id="taskModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Nueva Tarea</h3>
+
+    <label>Título</label>
+    <input id="taskTitle" type="text">
+
+    <label>Prioridad</label>
+    <select id="taskPriority">
+      <option value="low">Baja</option>
+      <option value="medium">Media</option>
+      <option value="high">Alta</option>
+    </select>
+
+    <label>Fecha de vencimiento</label>
+    <input id="taskDue" type="date">
+
+    <div class="modal-actions">
+      <button id="cancelTask">Cancelar</button>
+      <button id="saveTask">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
