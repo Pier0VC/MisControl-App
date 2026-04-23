@@ -52,28 +52,37 @@ async function loadProjects() {
   const list = document.getElementById("projectList");
   list.innerHTML = "";
 
-  const snap = await getDocs(collection(db, "projects"));
-  snap.forEach(d => {
+  const projectsSnap = await getDocs(collection(db, "projects"));
+
+  for (const d of projectsSnap.docs) {
+    const projectId = d.id;
+
+    // 🔢 Contar tareas del proyecto
+    const tasksSnap = await getDocs(
+      query(collection(db, "tasks"), where("projectId", "==", projectId))
+    );
+    const taskCount = tasksSnap.size;
+
     const div = document.createElement("div");
     div.className = "project-card";
-    div.dataset.id = d.id;
+    div.dataset.id = projectId;
 
     div.innerHTML = `
-    <div class="card-date">${formatDate(d.data().createdAt)}</div>
-    <div class="project-title">${d.data().name}</div>
-    <div class="project-meta">Proyecto</div>
+      <div class="card-date">${formatDate(d.data().createdAt)}</div>
+      <div class="project-title">${d.data().name}</div>
+      <div class="project-meta">Tareas: ${taskCount}</div>
     `;
-
 
     div.onclick = () => {
       document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
       div.classList.add("active");
-      currentProject = d.id;
+      currentProject = projectId;
       loadComments();
       loadTasks();
     };
+
     list.appendChild(div);
-  });
+  }
 }
 
 btnDeleteProject.onclick = async () => {
