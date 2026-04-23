@@ -1,0 +1,137 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, Arial;
+}
+
+body {
+  margin: 0;
+  background: #f4f5f7;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 220px 300px 1fr;
+  height: 100vh;
+}
+
+/* PROYECTOS */
+.projects {
+  background: #fff;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.project {
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  background: #e8ebff;
+  cursor: pointer;
+}
+
+.project.active {
+  background: #4f6cff;
+  color: white;
+}
+
+/* HISTORIAL */
+.history {
+  background: #fafafa;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.comment {
+  background: white;
+  padding: 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+
+/* BOARD */
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+.column {
+  background: #ebecf0;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.tasks {
+  min-height: 150px;
+}
+
+/* TAREA */
+.task {
+  background: #fff;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  position: relative;
+  cursor: grab;
+}
+
+.tags {
+  margin-top: 4px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+}
+
+.high { background: #e53935; }
+.medium { background: #fb8c00; }
+.low { background: #43a047; }
+
+.due-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+/* MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  width: 300px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
