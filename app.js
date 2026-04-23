@@ -128,11 +128,15 @@ saveComment.onclick = async () => {
 };
 
 function loadComments() {
-  if (!currentProject) return;
+    if (!currentProject) return;
 
-  if (unsubscribeComments) unsubscribeComments();
+    if (unsubscribeComments) {
+        unsubscribeComments();
+        unsubscribeComments = null;
+    }
 
-  unsubscribeComments = onSnapshot(
+
+    unsubscribeComments = onSnapshot(
     query(
       collection(db, "comments"),
       where("projectId", "==", currentProject)
@@ -182,7 +186,13 @@ saveTask.onclick = async () => {
 function loadTasks() {
   if (!currentProject) return;
 
-  if (unsubscribeTasks) unsubscribeTasks();
+
+  // ✅ CERRAR LISTENER ANTERIOR
+  if (unsubscribeTasks) {
+    unsubscribeTasks();
+    unsubscribeTasks = null;
+  }
+
 
   unsubscribeTasks = onSnapshot(
     query(collection(db, "tasks"), where("projectId", "==", currentProject)),
