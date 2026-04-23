@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, where, deleteDoc, doc, serverTimestamp
+  query, where, deleteDoc, doc,
+  serverTimestamp, onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -48,42 +49,42 @@ saveProject.onclick = async () => {
   loadProjects();
 };
 
-async function loadProjects() {
+function loadProjects() {
   const list = document.getElementById("projectList");
-  list.innerHTML = "";
 
-  const projectsSnap = await getDocs(collection(db, "projects"));
+  onSnapshot(collection(db, "projects"), async snap => {
+    list.innerHTML = "";
 
-  for (const d of projectsSnap.docs) {
-    const projectId = d.id;
+    for (const d of snap.docs) {
+      const projectId = d.id;
 
-    // 🔢 Contar tareas del proyecto
-    const tasksSnap = await getDocs(
-      query(collection(db, "tasks"), where("projectId", "==", projectId))
-    );
-    const taskCount = tasksSnap.size;
+      const tasksSnap = await getDocs(
+        query(collection(db, "tasks"), where("projectId", "==", projectId))
+      );
 
-    const div = document.createElement("div");
-    div.className = "project-card";
-    div.dataset.id = projectId;
+      const div = document.createElement("div");
+      div.className = "project-card";
+      div.dataset.id = projectId;
 
-    div.innerHTML = `
-      <div class="card-date">${formatDate(d.data().createdAt)}</div>
-      <div class="project-title">${d.data().name}</div>
-      <div class="project-meta">Tareas: ${taskCount}</div>
-    `;
+      div.innerHTML = `
+        <div class="card-date">${formatDate(d.data().createdAt)}</div>
+        <div class="project-title">${d.data().name}</div>
+        <div class="project-meta">Tareas: ${tasksSnap.size}</div>
+      `;
 
-    div.onclick = () => {
-      document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
-      div.classList.add("active");
-      currentProject = projectId;
-      loadComments();
-      loadTasks();
-    };
+      div.onclick = () => {
+        document.querySelectorAll(".project-card").forEach(p => p.classList.remove("active"));
+        div.classList.add("active");
+        currentProject = projectId;
+        loadComments();
+        loadTasks();
+      };
 
-    list.appendChild(div);
-  }
+      list.appendChild(div);
+    }
+  });
 }
+
 
 btnDeleteProject.onclick = async () => {
   if (!currentProject) return;
@@ -118,26 +119,32 @@ saveComment.onclick = async () => {
   loadComments();
 };
 
-async function loadComments() {
-  commentList.innerHTML = "";
-  const snap = await getDocs(query(collection(db, "comments"), where("projectId", "==", currentProject)));
-  snap.forEach(d => {
-    const div = document.createElement("div");
-    div.className = "comment";
+function loadComments() {
+  if (!currentProject) return;
 
-    div.innerHTML = `
-    <div class="card-date">${formatDate(d.data().createdAt)}</div>
-    <div class="comment-text">${d.data().text}</div>
-    <span class="delete-btn">🗑</span>
-    `;
+  onSnapshot(
+    query(collection(db, "comments"), where("projectId", "==", currentProject)),
+    snap => {
+      commentList.innerHTML = "";
 
+      snap.forEach(d => {
+        const div = document.createElement("div");
+        div.className = "comment";
 
-    div.querySelector(".delete-btn").onclick = async () => {
-      await deleteDoc(doc(db, "comments", d.id));
-      loadComments();
-    };
-    commentList.appendChild(div);
-  });
+        div.innerHTML = `
+          <div class="card-date">${formatDate(d.data().createdAt)}</div>
+          <div class="comment-text">${d.data().text}</div>
+          <span class="delete-btn">🗑</span>
+        `;
+
+        div.querySelector(".delete-btn").onclick = async () => {
+          await deleteDoc(doc(db, "comments", d.id));
+        };
+
+        commentList.appendChild(div);
+      });
+    }
+  );
 }
 
 /* ========= TAREAS ========= */
@@ -157,45 +164,55 @@ saveTask.onclick = async () => {
   loadTasks();
 };
 
-async function loadTasks() {
+function loadTasks() {
+  if (!currentProject) return;
+
   document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
-  const snap = await getDocs(query(collection(db, "tasks"), where("projectId", "==", currentProject)));
 
-  snap.forEach(d => {
-    const t = d.data();
-    const div = document.createElement("div");
-    div.className = `task-card ${t.priority}`;
-    div.draggable = true;
-    div.dataset.id = d.id;
+  onSnapshot(
+    query(collection(db, "tasks"), where("projectId", "==", currentProject)),
+    snap => {
+      document.querySelectorAll(".tasks").forEach(t => t.innerHTML = "");
 
-    div.innerHTML = `
-    <div class="card-date">${formatDate(t.createdAt)}</div>
-    <div class="task-deadline">${getRemainingTime(t.dueDate)}</div>
+      snap.forEach(d => {
+        const t = d.data();
+        const div = document.createElement("div");
+        div.className = `task-card ${t.priority}`;
+        div.draggable = true;
+        div.dataset.id = d.id;
 
-    <div class="task-header">
-        <span class="task-title">${t.title}</span>
-        <div class="task-actions">
-        <span class="delete-btn" title="Eliminar">🗑</span>
-        </div>
-    </div>
+        div.innerHTML = `
+          <div class="card-date">${formatDate(t.createdAt)}</div>
+          <div class="task-deadline">${getRemainingTime(t.dueDate)}</div>
 
-    <div class="task-desc">${t.description || ""}</div>
+          <div class="task-header">
+            <span class="task-title">${t.title}</span>
+            <div class="task-actions">
+              <span class="delete-btn">🗑</span>
+            </div>
+          </div>
 
-    <div class="task-footer">
-        <span class="priority-badge ${t.priority}">
-        ${t.priority.toUpperCase()}
-        </span>
-    </div>
-    `;
+          <div class="task-desc">${t.description || ""}</div>
 
-    div.querySelector(".delete-btn").onclick = async () => {
-      await deleteDoc(doc(db, "tasks", d.id));
-      loadTasks();
-    };
+          <div class="task-footer">
+            <span class="priority-badge ${t.priority}">
+              ${t.priority.toUpperCase()}
+            </span>
+          </div>
+        `;
 
-    div.ondragstart = () => dragged = div;
-    document.querySelector(`.column[data-status="${t.status}"] .tasks`).appendChild(div);
-  });
+        div.querySelector(".delete-btn").onclick = async () => {
+          await deleteDoc(doc(db, "tasks", d.id));
+        };
+
+        div.ondragstart = () => dragged = div;
+
+        document
+          .querySelector(`.column[data-status="${t.status}"] .tasks`)
+          .appendChild(div);
+      });
+    }
+  );
 }
 
 document.querySelectorAll(".column").forEach(col => {
